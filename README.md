@@ -4,8 +4,6 @@ Este proyecto utiliza **Meltano**, una herramienta open source para construir pi
 
 Meltano se ejecuta siempre mediante comandos y no funciona como un servicio en segundo plano por defecto.
 
----
-
 ## Entorno virtual
 
 Se recomienda usar un entorno virtual de Python para el proyecto:
@@ -75,8 +73,6 @@ Carpeta para salidas locales del proyecto. Incluye su propio `.gitignore`.
 
 Configuración básica para evitar versionar archivos generados automáticamente, como `.meltano/`.
 
----
-
 ## Entornos
 
 Durante la inicialización, Meltano crea automáticamente los siguientes entornos:
@@ -86,5 +82,3 @@ Durante la inicialización, Meltano crea automáticamente los siguientes entorno
 * `prod`
 
 Estos entornos permiten definir configuraciones distintas (credenciales, destinos, parámetros) sin duplicar proyectos.
-
----
