@@ -1,0 +1,17 @@
+services:
+  # Contenedor de PostgreSQL: base de datos para cargar los datos del pipeline
+  postgres:
+    image: postgres:15                  # Imagen oficial de PostgreSQL 15
+    container_name: postgres    # Nombre del contenedor
+    environment:                         # Variables de entorno para configuración inicial
+      POSTGRES_USER: meltano
+      POSTGRES_PASSWORD: meltano
+      POSTGRES_DB: meltano_db
+    ports:
+      - "5432:5432"                     # Puerto expuesto para conectarse desde Meltano o tu host
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Volumen persistente para la base de datos
+
+# Definición de volúmenes persistentes
+volumes:
+  postgres_data:                        # Volumen para guardar los datos de PostgreSQL fuera del contenedor
