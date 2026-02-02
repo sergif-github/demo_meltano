@@ -336,3 +336,15 @@ Resultado final:
 * La vista contiene `name` y `email` unificados desde ambas fuentes, sin duplicados.
 
 Este flujo representa un pipeline ELT completo y funcional usando Meltano, Singer y dbt sobre PostgreSQL.
+
+## Conclusiones
+
+En este proyecto se ha buscado construir un pipeline ELT completo usando Meltano, combinando datos de una base de datos PostgreSQL y de un endpoint REST, y luego transformarlos con dbt para generar una vista unificada de usuarios. La idea era tener un flujo sencillo: extraer, cargar y transformar. Sin embargo, durante el proceso se han encontrado varias limitaciones y aspectos a considerar.
+
+Una de las primeras dificultades fue con los extractores y loaders. No todos los destinos son soportados de forma confiable; por ejemplo, no fue posible usar MongoDB como loader. Además, la configuración de streams en el extractor de API REST no se puede completar completamente desde la CLI, obligando a modificar manualmente el archivo `meltano.yml`. Esto muestra que Meltano es bastante rígido y que algunas configuraciones complejas requieren intervención directa en los archivos de proyecto.
+
+Otro punto importante es que Meltano está orientado a ELT, no a ETL. No permite transformar los datos antes de cargarlos, así que toda la limpieza, combinación o consolidación debe hacerse sobre tablas ya persistidas en la base de datos destino usando SQL. Esto genera redundancia: se cargan tablas separadas por cada extractor y luego se combinan en una vista final, lo que puede ser ineficiente si los datos son grandes o si se repite esta lógica en varios pipelines. Además, dbt no interactúa con los extractores ni con los mensajes Singer; solo trabaja sobre tablas ya cargadas, lo que refuerza esta naturaleza estrictamente ELT de Meltano.
+
+Por otro lado, herramientas como NiFi resultaron más flexibles para ciertos flujos de datos. Con NiFi se puede configurar visualmente la extracción, transformación y carga, controlar los campos que se necesitan, y crear rutas condicionales sin tener que tocar archivos de configuración manualmente. Esto hace que para pipelines que no son puramente analíticos, o que requieren ETL clásico, Meltano pueda sentirse limitado y menos intuitivo en comparación con alternativas modernas.
+
+En resumen, Meltano funciona bien para pipelines analíticos donde el destino es un data warehouse y las transformaciones se realizan en SQL, especialmente si se busca versionar todo como código. Sin embargo, para integraciones con fuentes o destinos no relacionales, o para flujos donde se necesita transformar antes de cargar, otras herramientas como NiFi pueden ofrecer una experiencia más directa y flexible.
