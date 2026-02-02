@@ -1,17 +1,32 @@
 services:
-  # Contenedor de PostgreSQL: base de datos para cargar los datos del pipeline
+  # PostgreSQL
   postgres:
-    image: postgres:15                  # Imagen oficial de PostgreSQL 15
-    container_name: postgres    # Nombre del contenedor
-    environment:                         # Variables de entorno para configuración inicial
+    image: postgres:15                     # Imagen oficial de PostgreSQL 15
+    container_name: postgres
+    environment:                           # Variables de entorno para la DB
       POSTGRES_USER: meltano
       POSTGRES_PASSWORD: meltano
-      POSTGRES_DB: meltano_db
+      POSTGRES_DB: meltano_postgres_db
     ports:
-      - "5432:5432"                     # Puerto expuesto para conectarse desde Meltano o tu host
+      - "5432:5432"                        # Puerto accesible desde host
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Volumen persistente para la base de datos
+      - postgres_data:/var/lib/postgresql/data  # Volumen persistente
+      - ./init-db:/docker-entrypoint-initdb.d
 
-# Definición de volúmenes persistentes
+
+  # pgAdmin (UI para PostgreSQL)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: meltano@example.com
+      PGADMIN_DEFAULT_PASSWORD: meltano
+    ports:
+      - "8080:80"                           # UI web en localhost:8080
+    depends_on:
+      - postgres
+
+
+# Volúmenes persistentes
 volumes:
-  postgres_data:                        # Volumen para guardar los datos de PostgreSQL fuera del contenedor
+  postgres_data:

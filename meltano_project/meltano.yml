@@ -1,6 +1,53 @@
 default_environment: dev
-project_id: 019c0a37-22f1-75f3-9266-549ffcf4ec50
+project_id: 019c1ddb-7b13-7746-8775-d8f94bbfa770
 environments:
 - name: dev
 - name: staging
 - name: prod
+plugins:
+  extractors:
+  - name: tap-postgres
+    variant: meltanolabs
+    pip_url: meltanolabs-tap-postgres
+    config:
+      host: localhost
+      port: 5432
+      user: meltano
+      database: meltano_postgres_db
+    select:
+    - public-users.*
+  - name: tap-rest-api-msdk
+    variant: widen
+    pip_url: tap-rest-api-msdk
+    config:
+      api_url: https://jsonplaceholder.typicode.com
+      streams:
+      - name: users
+        path: /users
+        primary_keys: [id]
+        records_path: $[*]
+  loaders:
+  - name: target-postgres
+    variant: meltanolabs
+    pip_url: meltanolabs-target-postgres
+    config:
+      host: localhost
+      port: 5432
+      user: meltano
+      database: meltano_postgres_db
+  transformers:
+  - name: dbt-postgres
+    variant: dbt-labs
+    pip_url: dbt-core dbt-postgres<1.8 git+https://github.com/meltano/dbt-ext.git@main
+    config:
+      host: localhost
+      port: 5432
+      user: meltano
+      dbname: meltano_postgres_db
+      schema: public
+jobs:
+- name: full_pipeline
+  tasks:
+  - tap-rest-api-msdk target-postgres
+  - tap-postgres target-postgres
+  - dbt-postgres:run

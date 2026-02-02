@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: tap_postgres
+    database: meltano_postgres_db
+    schema: tap_postgres
+    tables:
+      - name: users
+
+  - name: tap_rest_api_msdk
+    database: meltano_postgres_db
+    schema: tap_rest_api_msdk
+    tables:
+      - name: users
