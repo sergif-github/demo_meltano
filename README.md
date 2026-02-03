@@ -29,6 +29,10 @@ meltano init meltano_project
 
 Este comando genera la estructura base necesaria para trabajar con Meltano y prepara el proyecto para añadir extractores, cargadores, transformaciones y orquestación.
 
+<p align="center"> 
+  <img src="./imagenes/Captura_0.png"/> 
+</p>
+
 Meltano crea los siguientes archivos y carpetas:
 
 * `.meltano/`: Directorio interno de Meltano donde se almacenan la base de datos del proyecto, los entornos virtuales de los plugins y la información de estado y ejecución.
@@ -60,6 +64,10 @@ Estos entornos permiten definir configuraciones distintas (credenciales, destino
 ## Hub de Meltano
 
 Meltano se apoya principalmente en el ecosistema Singer, un estándar open source para el movimiento de datos entre sistemas. Singer define una especificación común que establece cómo los extractores emiten los datos, cómo los loaders los consumen y cómo se comunican entre sí de forma desacoplada.
+
+<p align="center"> 
+  <img src="./imagenes/Captura_1.png"/> 
+</p>
 
 En el Meltano Hub [https://hub.meltano.com/](https://hub.meltano.com/) se pueden encontrar:
 
@@ -122,6 +130,10 @@ Credenciales:
 * Contraseña: `meltano`
 * Base de datos: `meltano_postgres_db`
 
+<p align="center"> 
+  <img src="./imagenes/Captura_2.png"/> 
+</p>
+
 #### API REST
 
 Como fuente de datos vía API REST utilizaremos el endpoint público:
@@ -131,6 +143,10 @@ https://jsonplaceholder.typicode.com/users
 ```
 
 Este endpoint devuelve una lista de usuarios en formato JSON con campos como `id`, `name` y `email`.
+
+<p align="center"> 
+  <img src="./imagenes/Captura_3.png"/> 
+</p>
 
 ### Configuración de los extractors
 
@@ -165,6 +181,10 @@ Y validar la conexión:
 ```bash
 meltano config test tap-postgres
 ```
+
+<p align="center"> 
+  <img src="./imagenes/Captura_4.png"/> 
+</p>
 
 Si ejecutamos directamente el extractor:
 
@@ -204,6 +224,10 @@ Ejecutamos el extractor ya filtrado:
 meltano invoke tap-postgres
 ```
 
+<p align="center"> 
+  <img src="./imagenes/Captura_5.png"/> 
+</p>
+
 #### API REST
 
 Configuramos la URL base:
@@ -227,6 +251,10 @@ streams:
 * `primary_keys`: campos que identifican de forma única cada registro. Son obligatorios para que el extractor pueda emitir correctamente estados Singer y permitir cargas idempotentes.
 * `records_path`: expresión JSONPath que indica dónde se encuentran los registros dentro de la respuesta JSON. `$[*]` significa que la respuesta es una lista plana y que cada elemento del array es un registro.
 
+<p align="center"> 
+  <img src="./imagenes/Captura_6.png"/> 
+</p>
+
 ## Loader
 
 Añadimos el loader PostgreSQL:
@@ -246,6 +274,10 @@ meltano config set target-postgres database meltano_postgres_db
 ```
 
 Ambos extractores cargan sus datos en la misma base de datos, cada uno en su propio esquema.
+
+<p align="center"> 
+  <img src="./imagenes/Captura_7.png"/> 
+</p>
 
 ## Transformer
 
@@ -270,6 +302,10 @@ meltano config set dbt-postgres dbname meltano_postgres_db
 meltano config set dbt-postgres schema public
 ```
 
+<p align="center"> 
+  <img src="./imagenes/Captura_8.png"/> 
+</p>
+
 * Es obligatorio que dbt use la misma base de datos que los loaders. PostgreSQL no permite referencias entre bases de datos distintas dentro de una misma consulta SQL.
 * dbt no lee Singer, ni conoce los extractores o loaders. dbt solo ejecuta SQL sobre tablas ya cargadas.
 
@@ -278,42 +314,23 @@ Estas definiciones indican a dbt qué tablas existen previamente, en qué base d
 
 Las sources se definen en `transform/models/sources.yml`:
 
-```yaml
-version: 2
-
-sources:
-  - name: tap_postgres
-    database: meltano_postgres_db
-    schema: tap_postgres
-    tables:
-      - name: users
-
-  - name: tap_rest_api_msdk
-    database: meltano_postgres_db
-    schema: tap_rest_api_msdk
-    tables:
-      - name: users
-```
-
 Donde:
 
 * `database`: base de datos donde el loader ha creado las tablas
 * `schema`: esquema asociado a cada extractor
 * `tables`: tablas disponibles para ser consumidas por dbt
 
+<p align="center"> 
+  <img src="./imagenes/Captura_9.png"/> 
+</p>
+
 Estas definiciones permiten a dbt validar la existencia de las tablas y resolver correctamente las dependencias antes de ejecutar los modelos.
 
 Configuramos finalmente el modelo en `transform/models/unify.sql`:
 
-```sql
-select name, email
-from {{ source('tap_postgres', 'users') }}
-
-union
-
-select name, email
-from {{ source('tap_rest_api_msdk', 'users') }}
-```
+<p align="center"> 
+  <img src="./imagenes/Captura_10.png"/> 
+</p>
 
 ## Ejecución final del pipeline ELT
 
@@ -322,6 +339,10 @@ Definimos un job que encadena todo el flujo:
 ```bash
 meltano job add full_pipeline --tasks "[tap-postgres target-postgres, tap-rest-api-msdk target-postgres, dbt-postgres:run]"
 ```
+
+<p align="center"> 
+  <img src="./imagenes/Captura_11.png"/> 
+</p>
 
 Ejecutamos el pipeline completo:
 
@@ -335,7 +356,9 @@ Resultado final:
 * dbt crea una vista llamada `unify`.
 * La vista contiene `name` y `email` unificados desde ambas fuentes, sin duplicados.
 
-Este flujo representa un pipeline ELT completo y funcional usando Meltano, Singer y dbt sobre PostgreSQL.
+<p align="center"> 
+  <img src="./imagenes/Captura_12.png"/> 
+</p>
 
 ## Conclusiones
 
